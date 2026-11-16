@@ -20,6 +20,8 @@ output/
     ...
 ```
 
+**For personal use.** guruclocker downloads public videos so you can study them privately. Respect creators' rights and each platform's terms, and don't republish what it downloads.
+
 **Cost:** turning speech into text happens on your own computer, for free. The condensing uses Claude, through your own API key: about **8-10 cents per video** ($5 of credit covers about 50 videos).
 
 ---
@@ -133,3 +135,7 @@ If a video has little speech (under 40 words), 8 evenly spaced frames go to Clau
 **Layout:** `app/guruclocker/wizard.py` (prompts and plain-English messages), `download.py`, `transcribe.py`, `condense.py` (+ `prompts/condense.md`), `output.py` (+ `templates/CLAUDE.md`), `config.py`. Both launchers use [uv](https://docs.astral.sh/uv/) to install Python 3.11 and the locked dependencies (`uv.lock`) into `.venv`. On 64-bit Windows/Linux, the CUDA 12 cuBLAS/cuDNN 9 libraries come from pip wheels (cuBLAS is capped below 12.9.3, the first version without a Windows wheel), so the PC only needs an NVIDIA driver; `transcribe.py` adds their DLL folders on Windows. The optional Docker image is `python:3.11-slim` + uv.
 
 Developer files live in `app/dev/`: `PRD.md` (requirements and decisions), `Dockerfile`, and `tests/`.
+
+## License
+
+MIT. See `LICENSE`.

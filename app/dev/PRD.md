@@ -19,8 +19,8 @@ About half of the reels were funnels or low-ROI ideas. guruclocker automates ste
 
 | User | Machine | Terminal skill |
 |---|---|---|
-| Jiho (author) | Apple Silicon Mac (M4) | Comfortable |
-| Friend (first outside user) | Windows; GPU unknown | **None**. Every step must be in plain English. |
+| Author / developer | Apple Silicon Mac | Comfortable |
+| First outside user | Windows; GPU unknown | **None**. Every step must be in plain English. |
 
 ## 3. Goals / non-goals
 
@@ -175,7 +175,7 @@ guruclocker/
   output/       (gitignored)
 ```
 
-The round-1 prototype (`Exploration/guruclocker/docs/guruclocker.py`) supplied the download, chunked-MLX and loop-guard code. Its `compare` (ASR A/B) command was not carried over in v1; the model choice it produced (Qwen3-ASR 1.7B) is baked in.
+An earlier prototype script supplied the download, chunked-MLX and loop-guard code. Its `compare` (ASR A/B) command was not carried over in v1; the model choice it produced (Qwen3-ASR 1.7B) is baked in.
 
 ## 7. Error handling (plain English, never a stack trace by default)
 
@@ -215,7 +215,7 @@ A full log goes to `output/.logs/` for debugging.
 | Decision | Choice |
 |---|---|
 | Repo location | `~/Documents/Programming/guruclocker` |
-| Sharing | Private GitHub repo. Jiho pushes; the friend downloads the ZIP or clones. |
+| Sharing | GitHub repo; users download the ZIP or clone. |
 | Launchers | `windows.bat` and `mac.command`, named after their OS. **Both native via uv** (changed 2026-11-16: Docker Desktop + WSL2 + a ~7 GB image was too heavy for a beginner; Docker stays optional via `make docker-*`) |
 | Input | Terminal only, interactive, plain English |
 | Categories | Auto from content, reusing existing folder names |
