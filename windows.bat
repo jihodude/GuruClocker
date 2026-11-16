@@ -49,7 +49,7 @@ rem ---- 3. Build or update the guruclocker image ------------------------------
 docker image inspect guruclocker >nul 2>nul
 if errorlevel 1 (
   echo  First-time setup: preparing guruclocker inside Docker.
-  echo  This takes 5 to 15 minutes and downloads a few GB. Later runs start in seconds.
+  echo  This takes 10 to 20 minutes and downloads about 7 GB. Later runs start in seconds.
   echo.
 )
 docker build -t guruclocker . 

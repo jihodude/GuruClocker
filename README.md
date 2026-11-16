@@ -35,7 +35,7 @@ output/
    - Download **Docker Desktop for Windows** and run the installer. Keep the default options. If it mentions **WSL 2**, say yes.
    - Restart your computer when it asks.
    - Open **Docker Desktop** from the Start menu, accept the terms, and skip signing in. Wait until the bottom-left says **Engine running**.
-4. **Double-click `windows.bat` again.** The first time, it spends 5-15 minutes downloading and setting things up. You'll see a lot of text scroll by; that's normal.
+4. **Double-click `windows.bat` again.** The first time, it spends 10-20 minutes downloading and setting things up (about 7 GB, mostly graphics-card libraries; make sure you have 15 GB free). You'll see a lot of text scroll by; that's normal.
 5. **It asks for your Claude API key** (only the first time):
    - Go to **https://console.anthropic.com** and make an account.
    - Click **Billing** and add $5 of credit.
