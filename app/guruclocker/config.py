@@ -10,7 +10,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent        # the app/ folder
+TOP = ROOT.parent                                    # the folder with windows.bat / mac.command
 ENV_FILE = ROOT / ".env"
 IN_DOCKER = os.environ.get("GURUCLOCKER_IN_DOCKER") == "1"
 
@@ -51,7 +52,7 @@ def load_settings() -> Settings:
         whisper_device=os.environ.get("WHISPER_DEVICE", "").strip().lower() or "auto",
         keep_videos=_bool(os.environ.get("KEEP_VIDEOS")),
         cookies_browser=os.environ.get("COOKIES_BROWSER", "").strip(),
-        output_dir=Path(out).expanduser().resolve() if out else ROOT / "output",
+        output_dir=Path(out).expanduser().resolve() if out else TOP / "output",
     )
 
 

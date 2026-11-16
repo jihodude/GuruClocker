@@ -2,7 +2,6 @@
 name = "guruclocker"
 version = "1.0.0"
 description = "Paste video links, get transcripts + condensed action steps sorted into folders."
-readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
     "anthropic>=0.80",

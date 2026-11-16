@@ -2,7 +2,7 @@
 # guruclocker for Mac. Double-click this file to run it.
 # (First time only: if macOS says it can't be opened, right-click it -> Open -> Open.)
 
-cd "$(dirname "$0")" || exit 1
+cd "$(dirname "$0")/app" || exit 1
 export PATH="$HOME/.local/bin:$PATH"
 
 finish() {

@@ -1,7 +1,7 @@
 @echo off
 rem guruclocker for Windows. Double-click this file to run it.
 setlocal
-cd /d "%~dp0"
+cd /d "%~dp0app"
 title guruclocker
 set "PATH=%USERPROFILE%\.local\bin;%PATH%"
 echo.

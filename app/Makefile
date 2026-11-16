@@ -1,8 +1,9 @@
 # guruclocker developer commands. Friends don't need these: they double-click mac.command or windows.bat.
-# Type `make` (or `make help`) to list them.
+# Run from the repo root as `make -C app <command>`, or `cd app` first. `make -C app` lists them.
 
 IMAGE  := guruclocker
 VOLUME := guruclocker-models
+OUTPUT := $(abspath $(CURDIR)/../output)
 # Pass extra arguments through, e.g.  make run LINKS="https://..., https://..."  or  make run FILE=links.txt
 RUN_ARGS = $(if $(LINKS),--links "$(LINKS)") $(if $(FILE),--file "$(FILE)") $(ARGS)
 
@@ -26,7 +27,7 @@ check: ## Print a system check (GPU, model, key, folders)
 test: ## Run the unit tests
 	uv run --frozen pytest -q
 
-clean: ## Delete the local virtualenv and caches (keeps output/ and .env)
+clean: ## Delete the local virtualenv and caches (keeps ../output and .env)
 	rm -rf .venv .pytest_cache
 	find . -name __pycache__ -type d -prune -exec rm -rf {} +
 
@@ -35,12 +36,12 @@ docker-build: ## Build the optional Docker image
 
 # Uses the NVIDIA GPU when Docker can see one, otherwise CPU. Same steps as windows.bat.
 docker-run: docker-build ## Run inside Docker (GPU if available). Same LINKS=/FILE= options
-	@mkdir -p output; test -f .env || cp .env.example .env
+	@mkdir -p $(OUTPUT); test -f .env || cp .env.example .env
 	@GPUS=$$(docker run --rm --gpus all --entrypoint python $(IMAGE) -c "import ctranslate2; print(ctranslate2.get_cuda_device_count())" 2>/dev/null || echo 0); \
 	if [ "$${GPUS:-0}" -gt 0 ] 2>/dev/null; then FLAG="--gpus all"; echo "NVIDIA GPU found: fast mode"; \
 	else FLAG=""; echo "No NVIDIA GPU visible to Docker: CPU mode (slower)"; fi; \
 	TTY=$$([ -t 0 ] && echo "-t"); \
-	docker run --rm -i $$TTY $$FLAG -v "$(CURDIR)/output:/app/output" -v "$(CURDIR)/.env:/app/.env" \
+	docker run --rm -i $$TTY $$FLAG -v "$(OUTPUT):/app/output" -v "$(CURDIR)/.env:/app/.env" \
 		-v $(VOLUME):/cache $(IMAGE) $(RUN_ARGS)
 
 docker-check: docker-build ## System check inside Docker

@@ -81,13 +81,13 @@ Run guruclocker again any time with new links. Videos it has already done (inclu
 ## Troubleshooting
 
 **"Instagram keeps blocking me" / "The site blocked the download"**
-Instagram sometimes refuses downloads from people who aren't logged in, especially when you run a lot in a row. Wait an hour and try again; links that failed are listed in `output/failures.md`. You can also borrow your browser's Instagram login: open `.env` in Notepad or TextEdit and set `COOKIES_BROWSER=chrome` (or `safari`, `firefox`, `edge`). You must be logged into Instagram in that browser.
+Instagram sometimes refuses downloads from people who aren't logged in, especially when you run a lot in a row. Wait an hour and try again; links that failed are listed in `output/failures.md`. You can also borrow your browser's Instagram login: open `app/.env` in Notepad or TextEdit and set `COOKIES_BROWSER=chrome` (or `safari`, `firefox`, `edge`). You must be logged into Instagram in that browser.
 
 **"Your Anthropic account is out of credits"**
 Add credit at console.anthropic.com -> Billing, then run it again. Videos that already finished are kept.
 
 **"Your Claude API key didn't work"**
-Open the `.env` file in Notepad or TextEdit, delete everything after `ANTHROPIC_API_KEY=` on that line, save, and run it again. It will ask for the key again.
+Open `app/.env` in Notepad or TextEdit, delete everything after `ANTHROPIC_API_KEY=` on that line, save, and run it again. It will ask for the key again.
 
 **Windows: the window closes instantly or nothing happens**
 You may have run it from inside the ZIP. Right-click the ZIP -> **Extract All...** first, then double-click `windows.bat` in the extracted folder.
@@ -98,15 +98,15 @@ Usually a network or antivirus block. Try again on a home network. If your antiv
 **Check what guruclocker sees on your computer**
 Windows: open the folder, click the address bar, type `cmd`, and press Enter. Then type `windows.bat --check` and press Enter. Mac: `bash mac.command --check`. This shows the API key status, whether an NVIDIA GPU was found, and where results go. Send a screenshot of it if you ask someone for help.
 
-### Settings (`.env`)
+### Settings (`app/.env`)
 
-The `.env` file (open it with Notepad or TextEdit) holds your API key and a few optional settings, each explained inside: which Claude model to use, the speech-to-text model, and whether to keep the downloaded videos (`KEEP_VIDEOS=true`).
+The `.env` file inside the `app` folder (open it with Notepad or TextEdit; on a Mac, press **Cmd+Shift+.** in Finder to show hidden files) holds your API key and a few optional settings, each explained inside: which Claude model to use, the speech-to-text model, and whether to keep the downloaded videos (`KEEP_VIDEOS=true`).
 
 ---
 
 ## For developers
 
-Everything goes through the Makefile (`make` lists the commands):
+The friend-facing top folder holds only the launchers and this README; everything else is in `app/`. Developer commands go through `app/Makefile`. Run them from the repo root as `make -C app <command>`, or `cd app` first (`make -C app` lists them). Results always go to the top-level `output/`.
 
 | Command | What it does |
 |---|---|
@@ -127,6 +127,6 @@ Everything goes through the Makefile (`make` lists the commands):
 
 If a video has little speech (under 40 words), 8 evenly spaced frames go to Claude along with the transcript, so videos made of on-screen text lists still get read.
 
-**Layout:** `guruclocker/wizard.py` (prompts and plain-English messages), `download.py`, `transcribe.py`, `condense.py` (+ `prompts/condense.md`), `output.py` (+ `templates/CLAUDE.md`), `config.py`. Both launchers use [uv](https://docs.astral.sh/uv/) to install Python 3.11 and the locked dependencies (`uv.lock`) into `.venv`. On 64-bit Windows/Linux, the CUDA 12 cuBLAS/cuDNN 9 libraries come from pip wheels (cuBLAS is capped below 12.9.3, the first version without a Windows wheel), so the PC only needs an NVIDIA driver; `transcribe.py` adds their DLL folders on Windows. The optional Docker image is `python:3.11-slim` + uv.
+**Layout:** `app/guruclocker/wizard.py` (prompts and plain-English messages), `download.py`, `transcribe.py`, `condense.py` (+ `prompts/condense.md`), `output.py` (+ `templates/CLAUDE.md`), `config.py`. Both launchers use [uv](https://docs.astral.sh/uv/) to install Python 3.11 and the locked dependencies (`uv.lock`) into `.venv`. On 64-bit Windows/Linux, the CUDA 12 cuBLAS/cuDNN 9 libraries come from pip wheels (cuBLAS is capped below 12.9.3, the first version without a Windows wheel), so the PC only needs an NVIDIA driver; `transcribe.py` adds their DLL folders on Windows. The optional Docker image is `python:3.11-slim` + uv.
 
-Developer files live in `dev/`: `PRD.md` (requirements and decisions), `Dockerfile`, and `tests/`.
+Developer files live in `app/dev/`: `PRD.md` (requirements and decisions), `Dockerfile`, and `tests/`.
