@@ -131,6 +131,12 @@ def run(link_text: str, settings: config.Settings, api_key: str, interactive: bo
             skipped += 1
             continue
         say(f"{tag} {url}", "bold")
+        if "instagram.com/direct/" in url:
+            why = ("That's a link to an Instagram DM chat, not to the video. Open the reel itself, tap the "
+                   "share (paper plane) icon -> Copy link, and use that link (it contains /reel/).")
+            failures.append((url, why))
+            say(f"      failed: {why}", "red")
+            continue
         work = Path(tempfile.mkdtemp(prefix="guruclocker_"))
         try:
             say("      getting video details...", "dim")

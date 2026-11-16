@@ -80,6 +80,9 @@ Run guruclocker again any time with new links. Videos it has already done (inclu
 
 ## Troubleshooting
 
+**"That's a link to an Instagram DM chat"**
+You copied the address of a DM conversation (`instagram.com/direct/...`). Open the reel itself, tap the share (paper plane) icon -> **Copy link**, and paste that instead. Good links contain `/reel/` or `/p/`.
+
 **"Instagram keeps blocking me" / "The site blocked the download"**
 Instagram sometimes refuses downloads from people who aren't logged in, especially when you run a lot in a row. Wait an hour and try again; links that failed are listed in `output/failures.md`. You can also borrow your browser's Instagram login: open `app/.env` in Notepad or TextEdit and set `COOKIES_BROWSER=chrome` (or `safari`, `firefox`, `edge`). You must be logged into Instagram in that browser.
 
