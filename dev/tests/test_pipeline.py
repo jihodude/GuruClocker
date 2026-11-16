@@ -140,3 +140,27 @@ def test_save_api_key_in_place(tmp_path, monkeypatch):
 def test_download_errors_are_plain_english():
     assert "private" in explain(Exception("ERROR: This content is private"))
     assert "blocked" in explain(Exception("ERROR: login required, use --cookies"))
+
+
+# --------------------------------------------------------------------------- GPU -> CPU fallback
+
+def test_whisper_falls_back_to_cpu_when_gpu_fails(monkeypatch, tmp_path):
+    from guruclocker import transcribe
+
+    class Broken:
+        def transcribe(self, *a, **k):
+            raise RuntimeError("Could not load library cudnn_ops64_9.dll")
+
+    class Works:
+        def transcribe(self, *a, **k):
+            return iter([SimpleNamespace(text=" hello "), SimpleNamespace(text="world")]), None
+
+    w = transcribe._Whisper.__new__(transcribe._Whisper)
+    w.model, w.device, w.requested_model = Broken(), "cuda", ""
+
+    def fake_load(self, device):
+        self.model, self.device = Works(), device
+
+    monkeypatch.setattr(transcribe._Whisper, "_load", fake_load)
+    assert w(tmp_path / "a.wav") == "hello world"
+    assert w.device == "cpu"

@@ -3,80 +3,46 @@ rem guruclocker for Windows. Double-click this file to run it.
 setlocal
 cd /d "%~dp0"
 title guruclocker
+set "PATH=%USERPROFILE%\.local\bin;%PATH%"
 echo.
 echo  guruclocker for Windows
 echo  -----------------------
-echo.
 
-rem ---- 1. Docker Desktop must be installed --------------------------------------------
-where docker >nul 2>nul
-if not errorlevel 1 goto docker_installed
-echo  guruclocker runs inside a free program called Docker Desktop, which isn't installed yet.
+rem ---- 1. uv: a small free tool that installs Python and this program's parts ----------
+rem      It installs into your user folder only; nothing else on your PC is changed.
+where uv >nul 2>nul
+if not errorlevel 1 goto have_uv
 echo.
-echo  I'm opening the download page for you. Then:
-echo    1. Download "Docker Desktop for Windows" and run the installer.
-echo       Keep the default options. If it asks about WSL 2, say yes.
-echo    2. Restart your computer when it asks.
-echo    3. Open Docker Desktop from the Start menu, accept its terms,
-echo       and wait until it says "Engine running". You can skip signing in.
-echo    4. Double-click windows.bat again.
+echo  First-time setup: installing "uv", a small free tool that installs Python for this program.
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://astral.sh/uv/install.ps1 | iex"
+where uv >nul 2>nul
+if not errorlevel 1 goto have_uv
 echo.
-echo  Stuck? See "Windows: Docker problems" in README.md.
-start "" "https://www.docker.com/products/docker-desktop/"
-goto end
-
-:docker_installed
-rem ---- 2. Docker Desktop must be running ----------------------------------------------
-docker info >nul 2>nul
-if not errorlevel 1 goto docker_ok
-echo  Docker Desktop isn't running. Starting it for you; this can take a minute...
-if exist "%ProgramFiles%\Docker\Docker\Docker Desktop.exe" start "" "%ProgramFiles%\Docker\Docker\Docker Desktop.exe"
-set /a tries=0
-:wait_docker
-timeout /t 3 /nobreak >nul
-docker info >nul 2>nul
-if not errorlevel 1 goto docker_ok
-set /a tries+=1
-if %tries% lss 60 goto wait_docker
-echo.
-echo  Docker Desktop still isn't ready after 3 minutes.
-echo  Open Docker Desktop from the Start menu, wait until it says "Engine running",
-echo  then double-click windows.bat again.
-goto end
-
-:docker_ok
-rem ---- 3. Build or update the guruclocker image ---------------------------------------
-docker image inspect guruclocker >nul 2>nul
-if errorlevel 1 (
-  echo  First-time setup: preparing guruclocker inside Docker.
-  echo  This takes 10 to 20 minutes and downloads about 7 GB. Later runs start in seconds.
-  echo.
-)
-docker build -t guruclocker . 
-if errorlevel 1 goto build_failed
-if not exist ".env" copy ".env.example" ".env" >nul
-if not exist "output" mkdir "output"
-
-rem ---- 4. Use the NVIDIA GPU if Docker can see one -------------------------------------
-set "GPUFLAG="
-set "GPUCOUNT=0"
-for /f %%g in ('docker run --rm --gpus all --entrypoint python guruclocker -c "import ctranslate2; print(ctranslate2.get_cuda_device_count())" 2^>nul') do set "GPUCOUNT=%%g"
-if not "%GPUCOUNT%"=="0" set "GPUFLAG=--gpus all"
-cls
-echo.
-if defined GPUFLAG echo  NVIDIA graphics card found: speech-to-text will run in fast mode.
-if not defined GPUFLAG echo  No NVIDIA graphics card found: speech-to-text will run on the processor. Slower, but it works.
-
-rem ---- 5. Run it -----------------------------------------------------------------------
-docker run --rm -it %GPUFLAG% -v "%cd%\output:/app/output" -v "%cd%\.env:/app/.env" -v guruclocker-models:/cache guruclocker %*
-if exist "output\INDEX.md" start "" "%cd%\output"
-goto end
-
-:build_failed
-echo.
-echo  Setting up guruclocker inside Docker failed - see the messages above.
-echo  Most often this is a dropped internet connection: double-click windows.bat to try again.
+echo  Couldn't install uv. Check your internet connection, then double-click windows.bat again.
 echo  If it keeps failing, send a screenshot of this window to whoever shared guruclocker with you.
+goto end
+
+:have_uv
+rem ---- 2. This program's parts: first time takes a few minutes, later runs skip it --------
+set "QUIET="
+if exist ".venv" set "QUIET=--quiet"
+if exist ".venv" goto sync
+echo.
+echo  First-time setup: installing guruclocker's parts.
+echo  This takes 5 to 10 minutes and downloads about 3 GB. Later runs start in seconds.
+:sync
+uv sync --frozen --no-dev %QUIET%
+if not errorlevel 1 goto run
+echo.
+echo  Setup failed - see the message above. Most often this is a dropped internet connection:
+echo  double-click windows.bat to try again. If it keeps failing, send a screenshot of this
+echo  window to whoever shared guruclocker with you.
+goto end
+
+:run
+if not exist ".env" copy ".env.example" ".env" >nul
+echo.
+uv run --frozen --no-dev python -m guruclocker %*
 
 :end
 echo.

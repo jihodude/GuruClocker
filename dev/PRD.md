@@ -55,7 +55,7 @@ About half of the reels were funnels or low-ROI ideas. guruclocker automates ste
    - **Windows:** `windows.bat`
    - **Mac:** `mac.command` (first time: right-click → Open, because macOS blocks downloaded scripts)
 3. The launcher checks requirements and explains how to fix anything missing:
-   - **Windows:** "Docker Desktop isn't installed. I'm opening the download page. Install it, restart your PC, then double-click `windows.bat` again."
+   - **Windows:** installs `uv` (no admin rights), which installs Python and the program's parts into the folder. About 3 GB the first time.
    - **Mac:** installs `uv` and `ffmpeg` if missing, with an explanation of each.
 4. **API key setup:** "guruclocker uses Claude to summarize videos. You need your own API key from console.anthropic.com (it costs a few cents per video). Paste it here and press Enter." The program checks that the key works, then saves it to `.env`.
 5. Model setup, shown once: "Downloading the speech-to-text model (about 1.5–3 GB, one time only)…"
@@ -131,8 +131,8 @@ launcher (windows.bat / mac.command)
 | Machine | Path | Backend | Speed (1-min reel) |
 |---|---|---|---|
 | Apple Silicon Mac | native (`mac.command` → uv venv) | MLX Qwen3-ASR-1.7B-8bit (round-1 winner) | ~10 s |
-| Windows + NVIDIA | Docker, `--gpus all` | faster-whisper `large-v3-turbo`, CUDA | a few s |
-| Windows without NVIDIA / other | Docker, CPU | faster-whisper `small`, int8 | ~15–45 s |
+| Windows + NVIDIA | native (`windows.bat` → uv venv) | faster-whisper `large-v3-turbo`, CUDA (pip CUDA libs) | a few s |
+| Windows without NVIDIA / other | native, CPU | faster-whisper `small`, int8 | ~15–45 s |
 
 - **GPU detection:** `windows.bat` runs `nvidia-smi`. If it succeeds, it starts the container with the GPU and says "NVIDIA GPU found, using fast mode." Otherwise it says "No NVIDIA GPU found, using CPU mode (slower, still works)."
 - **Overrides:** both the backend and the model can be changed in `.env`.
@@ -147,7 +147,7 @@ launcher (windows.bat / mac.command)
   - `make help` / `make setup` / `make run` / `make test` / `make clean`
   - `make docker-build` / `make docker-run`
   - The launchers call the same steps underneath.
-- **`Dockerfile`:** one image.
+- **`Dockerfile`** (optional, for Docker practice or Linux servers; not used by the launchers): one image.
   - Python 3.11-slim + ffmpeg + faster-whisper.
   - On amd64, the CUDA runtime libraries (pip `nvidia-cublas-cu12`, `nvidia-cudnn-cu12`) are added so the GPU works.
   - Code is copied in.
@@ -181,7 +181,8 @@ The round-1 prototype (`Exploration/guruclocker/docs/guruclocker.py`) supplied t
 
 | Situation | Message (gist) |
 |---|---|
-| Docker not installed / not running | "Docker Desktop isn't running. Open it from the Start menu, wait for the whale icon to settle, then try again." |
+| uv install fails (network/antivirus) | "Couldn't install uv. Check your internet connection, then double-click windows.bat again." |
+| NVIDIA libraries fail to load | Silently falls back to processor mode and says so. |
 | Bad or missing API key | "That key didn't work. Copy it again from console.anthropic.com → API Keys." |
 | Out of API credits | "Your Anthropic account is out of credits. Add some at console.anthropic.com → Billing." |
 | Instagram blocks a download | Logged to `failures.md`; "Instagram blocked this one. Try again later, or set COOKIES_BROWSER (see README)." |
@@ -215,7 +216,7 @@ A full log goes to `output/.logs/` for debugging.
 |---|---|
 | Repo location | `~/Documents/Programming/guruclocker` |
 | Sharing | Private GitHub repo. Jiho pushes; the friend downloads the ZIP or clones. |
-| Launchers | `windows.bat` (Docker) and `mac.command` (native MLX), named after their OS |
+| Launchers | `windows.bat` and `mac.command`, named after their OS. **Both native via uv** (changed 2026-11-16: Docker Desktop + WSL2 + a ~7 GB image was too heavy for a beginner; Docker stays optional via `make docker-*`) |
 | Input | Terminal only, interactive, plain English |
 | Categories | Auto from content, reusing existing folder names |
 | Condense model | `claude-opus-5-5` (configurable) |
@@ -227,6 +228,6 @@ A full log goes to `output/.logs/` for debugging.
 
 - **The Windows/GPU path is untested until the friend runs it.** Mitigations: CPU fallback, clear diagnostics, and a `windows.bat --check` that prints what it detected.
 - **Instagram may start blocking anonymous downloads.** The browser-cookie option is documented.
-- **Docker Desktop on Windows requires WSL2 and virtualization enabled in BIOS.** The README covers it. It's the biggest setup hurdle for a beginner.
+- **Windows GPU libraries load from pip wheels, which is untested on real hardware.** If they fail, the program falls back to the processor and says so. (This replaced the original Docker plan, which needed WSL2, BIOS virtualization and a ~7 GB image.)
 - **macOS Gatekeeper blocks `mac.command` from a ZIP.** The right-click → Open step is documented.
 - **API cost** is borne by each user. The README states the per-reel cost.

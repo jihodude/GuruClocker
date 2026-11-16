@@ -13,9 +13,10 @@ dependencies = [
     # Speech-to-text. Apple Silicon Macs use MLX (fast, on the Mac's GPU); everything else uses faster-whisper.
     "mlx-audio==0.6.3; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "faster-whisper>=1.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
-    # CUDA runtime libraries for NVIDIA GPUs (only pulled in on 64-bit Linux, i.e. inside the Windows Docker image)
-    "nvidia-cublas-cu12; sys_platform == 'linux' and platform_machine == 'x86_64'",
-    "nvidia-cudnn-cu12>=9,<10; sys_platform == 'linux' and platform_machine == 'x86_64'",
+    # CUDA runtime libraries for NVIDIA GPUs (64-bit Windows and Linux only; unused if there's no NVIDIA card).
+    # cuBLAS is capped below 12.9.3 because 12.9.3 ships no Windows wheel.
+    "nvidia-cublas-cu12>=12.4,<12.9.3; (sys_platform == 'win32' and platform_machine in 'AMD64 x86_64') or (sys_platform == 'linux' and platform_machine == 'x86_64')",
+    "nvidia-cudnn-cu12>=9,<10; (sys_platform == 'win32' and platform_machine in 'AMD64 x86_64') or (sys_platform == 'linux' and platform_machine == 'x86_64')",
 ]
 
 [dependency-groups]
@@ -29,4 +30,5 @@ build-backend = "hatchling.build"
 packages = ["guruclocker"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["dev/tests"]
+pythonpath = ["."]

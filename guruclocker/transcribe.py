@@ -7,8 +7,10 @@ anything else      -> faster-whisper small on CPU (slower, still fine for short 
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
+import sys
 import wave
 from dataclasses import dataclass
 from pathlib import Path
@@ -60,21 +62,56 @@ class _MLX:
         return result.text.strip()
 
 
+def _windows_gpu_libraries() -> None:
+    """On Windows, the NVIDIA libraries installed by pip live in site-packages/nvidia/*/bin, where
+    Windows doesn't look for DLLs by default. Point it there before ctranslate2 loads them."""
+    if sys.platform != "win32":
+        return
+    for base in map(Path, sys.path):
+        nvidia = base / "nvidia"
+        if not nvidia.is_dir():
+            continue
+        for bin_dir in nvidia.glob("*/bin"):
+            os.add_dll_directory(str(bin_dir))
+            os.environ["PATH"] = str(bin_dir) + os.pathsep + os.environ.get("PATH", "")
+
+
 class _Whisper:
     def __init__(self, model_name: str, device: str) -> None:
+        _windows_gpu_libraries()
         import ctranslate2
-        from faster_whisper import WhisperModel
 
         if device == "auto":
             device = "cuda" if ctranslate2.get_cuda_device_count() > 0 else "cpu"
-        if not model_name:
-            model_name = "large-v3-turbo" if device == "cuda" else "small"
-        compute = "float16" if device == "cuda" else "int8"
-        self.model = WhisperModel(model_name, device=device, compute_type=compute)
-        self.description = (f"NVIDIA GPU (Whisper {model_name})" if device == "cuda"
-                            else f"CPU (Whisper {model_name}, slower)")
+        self.requested_model = model_name
+        try:
+            self._load(device)
+        except Exception:
+            if device != "cuda":
+                raise
+            self._load("cpu")  # GPU libraries missing or broken: still work, just slower
+
+    def _load(self, device: str) -> None:
+        from faster_whisper import WhisperModel
+
+        name = self.requested_model or ("large-v3-turbo" if device == "cuda" else "small")
+        self.model = WhisperModel(name, device=device, compute_type="float16" if device == "cuda" else "int8")
+        self.device = device
+        self.description = (f"NVIDIA GPU (Whisper {name})" if device == "cuda"
+                            else f"processor (Whisper {name}; slower, but works)")
 
     def __call__(self, wav: Path) -> str:
+        try:
+            return self._transcribe(wav)
+        except Exception:
+            # A missing GPU library often only shows up on first use. Switch to the processor and retry once.
+            if self.device != "cuda":
+                raise
+            self._load("cpu")
+            print("      (the graphics card didn't work, so switched to processor mode)")
+            return self._transcribe(wav)
+
+    def _transcribe(self, wav: Path) -> str:
         # vad_filter skips music/silence, which also prevents the looping problem
         segments, _ = self.model.transcribe(str(wav), vad_filter=True, beam_size=5)
         return " ".join(s.text.strip() for s in segments).strip()

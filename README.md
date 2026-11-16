@@ -26,30 +26,29 @@ output/
 
 ## Windows
 
-### First time (about 30 minutes, mostly waiting)
+### First time (about 15 minutes, mostly waiting)
 
 1. **Get the code.** On the GitHub page, click the green **Code** button, then **Download ZIP**. Open your Downloads folder, right-click the ZIP, choose **Extract All...**, and pick somewhere easy to find, such as your Desktop.
-2. **Open the `guruclocker` folder and double-click `windows.bat`.**
+2. **Open the extracted folder and double-click `windows.bat`.**
    - If Windows shows a blue box saying "Windows protected your PC", click **More info**, then **Run anyway**. (It shows that for any downloaded script.)
-3. **The first time, it will say Docker Desktop isn't installed** and open the download page. Docker Desktop is a free program that runs guruclocker in its own little box, so you don't have to install Python or anything else.
-   - Download **Docker Desktop for Windows** and run the installer. Keep the default options. If it mentions **WSL 2**, say yes.
-   - Restart your computer when it asks.
-   - Open **Docker Desktop** from the Start menu, accept the terms, and skip signing in. Wait until the bottom-left says **Engine running**.
-4. **Double-click `windows.bat` again.** The first time, it spends 10-20 minutes downloading and setting things up (about 7 GB, mostly graphics-card libraries; make sure you have 15 GB free). You'll see a lot of text scroll by; that's normal.
-5. **It asks for your Claude API key** (only the first time):
+3. **The first time, it sets itself up.**
+   - It installs a small tool called **uv**, which then installs Python and everything else guruclocker needs.
+   - Everything goes inside your user folder and the guruclocker folder; nothing else on your PC changes, and you don't need admin rights.
+   - This takes 5-10 minutes and downloads about 3 GB. Text will scroll by; that's normal.
+4. **It asks for your Claude API key** (only the first time):
    - Go to **https://console.anthropic.com** and make an account.
    - Click **Billing** and add $5 of credit.
    - Click **API Keys**, then **Create Key**. Copy the key (it starts with `sk-ant-`).
    - Click into the black window and paste with **Ctrl+V** (or right-click), then press **Enter**.
-6. **Paste your video links**, separated by commas or one per line, then press **Enter on an empty line**.
+5. **Paste your video links**, separated by commas or one per line, then press **Enter on an empty line**.
 
 When it finishes, the `output` folder opens by itself.
 
-**Graphics card:** if your PC has an NVIDIA graphics card, guruclocker finds and uses it automatically ("fast mode"). If not, it uses the processor instead, which is slower (roughly 15-45 seconds per minute of video) but works fine.
+**Graphics card:** if your PC has an NVIDIA graphics card, guruclocker uses it automatically ("fast mode"). If it doesn't have one, or the card doesn't work with it, guruclocker uses the processor instead. That's slower (roughly 15-45 seconds per minute of video) but works fine.
 
 ### Every time after that
 
-Open Docker Desktop if it isn't running (`windows.bat` will try to start it for you). Then double-click `windows.bat`, paste links, and press Enter twice.
+Double-click `windows.bat`, paste links, and press Enter twice.
 
 ---
 
@@ -59,7 +58,7 @@ Open Docker Desktop if it isn't running (`windows.bat` will try to start it for 
 2. **Double-click `mac.command`.**
    - The first time, macOS may say it "cannot be opened because it is from an unidentified developer". Close that message, **right-click** `mac.command`, choose **Open**, then click **Open** again. You only do this once.
    - If it says you don't have permission, open the Terminal app, type `bash ` (with a space), drag `mac.command` into the Terminal window, and press Enter.
-3. The first run installs everything it needs (a few minutes), then asks for your Claude API key (same steps as Windows, step 5) and your links.
+3. The first run installs everything it needs (a few minutes), then asks for your Claude API key (same steps as Windows, step 4) and your links.
 
 On Apple Silicon Macs (M1-M4), speech-to-text runs on the Mac's own chip and is fast. Intel Macs use the slower processor mode.
 
@@ -82,7 +81,7 @@ Run guruclocker again any time with new links. Videos it has already done (inclu
 ## Troubleshooting
 
 **"Instagram keeps blocking me" / "The site blocked the download"**
-Instagram sometimes refuses downloads from people who aren't logged in, especially when you run a lot in a row. Wait an hour and try again; links that failed are listed in `output/failures.md`. On a Mac, you can also borrow your browser's Instagram login: open `.env` in TextEdit and set `COOKIES_BROWSER=chrome` (or `safari`, `firefox`, `edge`). You must be logged into Instagram in that browser.
+Instagram sometimes refuses downloads from people who aren't logged in, especially when you run a lot in a row. Wait an hour and try again; links that failed are listed in `output/failures.md`. You can also borrow your browser's Instagram login: open `.env` in Notepad or TextEdit and set `COOKIES_BROWSER=chrome` (or `safari`, `firefox`, `edge`). You must be logged into Instagram in that browser.
 
 **"Your Anthropic account is out of credits"**
 Add credit at console.anthropic.com -> Billing, then run it again. Videos that already finished are kept.
@@ -90,10 +89,11 @@ Add credit at console.anthropic.com -> Billing, then run it again. Videos that a
 **"Your Claude API key didn't work"**
 Open the `.env` file in Notepad or TextEdit, delete everything after `ANTHROPIC_API_KEY=` on that line, save, and run it again. It will ask for the key again.
 
-**Windows: Docker problems**
-- *"WSL 2 installation is incomplete"* or *"Virtualization not enabled"*: Docker needs virtualization switched on. Search the web for your PC model plus "enable virtualization BIOS". It's one setting, and usually called Intel VT-x or AMD SVM.
-- *Docker Desktop is stuck on "Starting"*: restart the computer, open Docker Desktop, and wait a couple of minutes.
-- *The window closes instantly*: right-click `windows.bat` -> **Edit** should show a text file. If it doesn't, you may have run it from inside the ZIP. Extract the ZIP first (step 1).
+**Windows: the window closes instantly or nothing happens**
+You may have run it from inside the ZIP. Right-click the ZIP -> **Extract All...** first, then double-click `windows.bat` in the extracted folder.
+
+**Windows: "Couldn't install uv"**
+Usually a network or antivirus block. Try again on a home network. If your antivirus quarantined something, allow `uv.exe`.
 
 **Check what guruclocker sees on your computer**
 Windows: open the folder, click the address bar, type `cmd`, and press Enter. Then type `windows.bat --check` and press Enter. Mac: `bash mac.command --check`. This shows the API key status, whether an NVIDIA GPU was found, and where results go. Send a screenshot of it if you ask someone for help.
@@ -114,7 +114,7 @@ Everything goes through the Makefile (`make` lists the commands):
 | `make run` | Run natively; `make run LINKS="url, url"` or `make run FILE=links.txt` skips the prompt |
 | `make check` | System check (GPU, models, key, paths) |
 | `make test` | Unit tests (Claude calls are mocked) |
-| `make docker-build` / `make docker-run` | Build / run the Docker image (GPU auto-detected, same as `windows.bat`) |
+| `make docker-build` / `make docker-run` | Optional: build / run in Docker instead (GPU auto-detected). Handy on Linux servers or for Docker practice |
 | `make docker-check` / `make docker-clean` | System check inside Docker / remove image + cached model |
 
 **How it works:** links -> `yt-dlp` download -> 16 kHz audio (bundled ffmpeg via `imageio-ffmpeg`) -> speech-to-text -> one Claude call per video (`claude-opus-5-5`, adaptive thinking, JSON schema output) -> files.
@@ -122,11 +122,11 @@ Everything goes through the Makefile (`make` lists the commands):
 | Where it runs | Speech-to-text |
 |---|---|
 | Apple Silicon Mac (native) | MLX `Qwen3-ASR-1.7B-8bit`, transcribed in 30 s chunks, with a guard against the model getting stuck repeating itself |
-| NVIDIA GPU (Docker `--gpus all`) | faster-whisper `large-v3-turbo`, float16 |
-| CPU (Docker or Intel/Linux native) | faster-whisper `small`, int8 |
+| Windows / Linux with an NVIDIA GPU | faster-whisper `large-v3-turbo`, float16 (falls back to CPU if the GPU libraries fail) |
+| Everything else (no NVIDIA GPU, Intel Mac) | faster-whisper `small`, int8 |
 
 If a video has little speech (under 40 words), 8 evenly spaced frames go to Claude along with the transcript, so videos made of on-screen text lists still get read.
 
-**Layout:** `guruclocker/wizard.py` (prompts and plain-English messages), `download.py`, `transcribe.py`, `condense.py` (+ `prompts/condense.md`), `output.py` (+ `templates/CLAUDE.md`), `config.py`. The Docker image is `python:3.11-slim` + uv. On x86_64, the CUDA 12 cuBLAS/cuDNN 9 libraries come from pip wheels, so no CUDA base image is needed; the host only needs an NVIDIA driver.
+**Layout:** `guruclocker/wizard.py` (prompts and plain-English messages), `download.py`, `transcribe.py`, `condense.py` (+ `prompts/condense.md`), `output.py` (+ `templates/CLAUDE.md`), `config.py`. Both launchers use [uv](https://docs.astral.sh/uv/) to install Python 3.11 and the locked dependencies (`uv.lock`) into `.venv`. On 64-bit Windows/Linux, the CUDA 12 cuBLAS/cuDNN 9 libraries come from pip wheels (cuBLAS is capped below 12.9.3, the first version without a Windows wheel), so the PC only needs an NVIDIA driver; `transcribe.py` adds their DLL folders on Windows. The optional Docker image is `python:3.11-slim` + uv.
 
-See `PRD.md` for the product requirements and decisions.
+Developer files live in `dev/`: `PRD.md` (requirements and decisions), `Dockerfile`, and `tests/`.

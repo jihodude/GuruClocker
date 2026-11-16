@@ -35,7 +35,8 @@ if [ ! -d .venv ]; then
   echo
   echo "First-time setup: installing guruclocker's parts. This takes a few minutes..."
 fi
-if ! uv sync --frozen --no-dev --quiet; then
+QUIET=""; [ -d .venv ] && QUIET="--quiet"
+if ! uv sync --frozen --no-dev $QUIET; then
   echo
   echo "Setup failed (see the message above). Check your internet connection and try again."
   finish 1

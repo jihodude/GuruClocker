@@ -30,8 +30,8 @@ clean: ## Delete the local virtualenv and caches (keeps output/ and .env)
 	rm -rf .venv .pytest_cache
 	find . -name __pycache__ -type d -prune -exec rm -rf {} +
 
-docker-build: ## Build the Docker image (the Windows path)
-	docker build -t $(IMAGE) .
+docker-build: ## Build the optional Docker image
+	docker build -f dev/Dockerfile -t $(IMAGE) .
 
 # Uses the NVIDIA GPU when Docker can see one, otherwise CPU. Same steps as windows.bat.
 docker-run: docker-build ## Run inside Docker (GPU if available). Same LINKS=/FILE= options
