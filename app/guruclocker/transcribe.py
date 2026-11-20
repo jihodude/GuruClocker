@@ -53,10 +53,13 @@ class _MLX:
         self.model = load_model(MLX_MODEL)
         self.description = "Apple Silicon (MLX, Qwen3-ASR 1.7B)"
 
-    def __call__(self, wav: Path) -> str:
+    def __call__(self, wav: Path, seconds: float = 0.0) -> str:
+        # The model stops after max_tokens for the WHOLE file (default 8192, about 40 minutes of speech).
+        # Allow ~600 tokens per minute: fast talkers use ~250, so long videos are never cut off.
+        max_tokens = max(8192, int(seconds / 60 * 600))
         try:
             # 30s chunks: if the model loops on a music section, only that chunk is affected
-            result = self.model.generate(str(wav), chunk_duration=30.0)
+            result = self.model.generate(str(wav), chunk_duration=30.0, max_tokens=max_tokens)
         except TypeError:
             result = self.model.generate(str(wav))
         return result.text.strip()
@@ -100,7 +103,7 @@ class _Whisper:
         self.description = (f"NVIDIA GPU (Whisper {name})" if device == "cuda"
                             else f"processor (Whisper {name}; slower, but works)")
 
-    def __call__(self, wav: Path) -> str:
+    def __call__(self, wav: Path, seconds: float = 0.0) -> str:
         try:
             return self._transcribe(wav)
         except Exception:
@@ -134,7 +137,7 @@ class Transcriber:
                 seconds = extract_audio(video, wav)
             except subprocess.CalledProcessError:  # video has no sound track
                 return Transcript(text="", looped=False, seconds=video_duration(video))
-            text, looped = collapse_loops(self._impl(wav)) if seconds > 0.5 else ("", False)
+            text, looped = collapse_loops(self._impl(wav, seconds)) if seconds > 0.5 else ("", False)
             return Transcript(text=text, looped=looped, seconds=seconds)
         finally:
             wav.unlink(missing_ok=True)
